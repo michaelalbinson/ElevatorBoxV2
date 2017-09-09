@@ -1,6 +1,6 @@
 # ElevatorBox V2
 The code, schematic and instructions for the Second version of the elevator failure counting box I made for work. Still 'twas good fun.
-~Please note that the schematic is currently not up to date~
+*Please note that the schematic is currently not up to date*
 
 ## Usage
 To use the counter box for the first time:
