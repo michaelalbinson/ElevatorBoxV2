@@ -8,12 +8,12 @@
 // pin definitions
 #define OLED_RESET 4
 #define RESET_BUTTON 12
-#define INC_TEN 5
-#define INC_ONE 3
+#define INC_TEN 3
+#define INC_ONE 5
 #define BUZZER_PIN 9
 #define DEC_TEN 10
 #define DEC_ONE 11
-#define GREEN_LED_PIN 1
+#define GREEN_LED_PIN 8
 #define RED_LED_PIN 2
 #define RED_LED_SWITCH 6
 #define GREEN_LED_SWITCH 7
@@ -74,12 +74,11 @@ const unsigned char logo [] PROGMEM = { //http://javl.github.io/image2cpp/ is su
 
 
 void setup() {
-  Serial.begin(9600);
   initiatePins();
   displayWelcome();
   displayLogo();
   soundWelcome();
-  setupFunction(false);
+  setupFunction();
 }
 
 void loop() {
@@ -96,11 +95,11 @@ void loop() {
 void checkButtonPush() {
   setBuildLed();
 
-  if (digitalRead(RESET_BUTTON)) {
+  if (digitalRead(RESET_BUTTON) && isCounterSet) {
     fifthSecIntervalCount = 0;
     dayCount = 0;
     isCounterSet = false;
-    displayTextLineAndDelay(" BUILD  FAILURE", 0, 2);
+    displayTextLineAndDelay("  BUILD    FAILURE", 0, 2);
     buildFailureTone();
   }
 }
@@ -109,6 +108,7 @@ void setupFunction() {
   if (digitalRead(RESET_BUTTON)) {
     isCounterSet = true;
     indicateSetupCompleteWithTone();
+    displayDate(false);
   }
   else if (digitalRead(INC_TEN))
     incrementOrDecrementDayCount(1);
@@ -124,15 +124,19 @@ void setupFunction() {
     displayed = !displayed;
     displayTimeCount = 0;
   }
+  
   displayTimeCount++;
 }
 
 void incrementOrDecrementDayCount(int countToChange) {
-  if((dayCount + countToChange) <= 0)
+  if((dayCount + countToChange) < 0) {
+    dayCount = 0;
     return;
-
-  if((dayCount + countToChange) >= 9999)
+  }
+  else if((dayCount + countToChange) >= 9999) {
+    dayCount = 9999;
     return;
+  }
 
   dayCount += countToChange;
   displayDate(false);
@@ -149,6 +153,8 @@ void initiatePins() {
   pinMode(GREEN_LED_SWITCH, INPUT); //green led button
   pinMode(RED_LED_PIN, OUTPUT); //red led power pin
   pinMode(GREEN_LED_PIN, OUTPUT); //green led power pin
+  digitalWrite(RED_LED_PIN, LOW); //set red LED off
+  digitalWrite(GREEN_LED_PIN, HIGH); //set green LED on
 }
 
 void indicateSetupCompleteWithTone() {
@@ -243,13 +249,13 @@ void alternateDisplaying(boolean state) {
 
 void setBuildLed() {
   bool setRedLED = digitalRead(RED_LED_SWITCH);
-  bool setGreenLED = digitalRead(GREEN_LED_SWITCH)
+  bool setGreenLED = digitalRead(GREEN_LED_SWITCH);
 
-  if (setRedLED) {
+  if (setRedLED && !setGreenLED) {
     digitalWrite(RED_LED_PIN, HIGH);
     digitalWrite(GREEN_LED_PIN, LOW);
   }
-  else if (setGreenLED) {
+  else if (setGreenLED && !setRedLED) {
     digitalWrite(GREEN_LED_PIN, HIGH);
     digitalWrite(RED_LED_PIN, LOW);
   }
